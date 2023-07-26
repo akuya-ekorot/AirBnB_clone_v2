@@ -48,7 +48,7 @@ server {
 	server_name _;
 
 	location / {
-		try_files $uri $uri/ =404;
+		try_files \$uri \$uri/ =404;
 	}
 
 	location /hbnb_static {
@@ -60,7 +60,7 @@ server {
 # update the Nginx configuration to serve the content of /data/web_static/current/ to hbnb_static
 update_nginx_config() {
 	# Use BEGIN and END comments to locate the section for insertion
-	echo $CONFIG | sudo tee /etc/nginx/sites-available/default
+	echo "$CONFIG" | sudo tee /etc/nginx/sites-available/default
 }
 
 # restart nginx
