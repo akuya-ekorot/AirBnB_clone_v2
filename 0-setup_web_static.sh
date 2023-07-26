@@ -11,27 +11,14 @@ install_nginx() {
 
 # create folders if not already created
 create_folders() {
-  if [ ! -d "/data/" ]; then
-    sudo mkdir /data/
-  fi
-  if [ ! -d "/data/web_static/" ]; then
-    sudo mkdir /data/web_static/
-  fi
-  if [ ! -d "/data/web_static/releases/" ]; then
-    sudo mkdir /data/web_static/releases/
-  fi
-  if [ ! -d "/data/web_static/shared/" ]; then
-    sudo mkdir /data/web_static/shared/
-  fi
   if [ ! -d "/data/web_static/releases/test/" ]; then
-    sudo mkdir /data/web_static/releases/test/
+    sudo mkdir -p /data/web_static/{releases/test/,shared/}
   fi
 }
 
 # create fake html file
 create_fake_html() {
   if [ ! -f "/data/web_static/releases/test/index.html" ]; then
-    sudo touch /data/web_static/releases/test/index.html
     sudo echo "Hello World" | sudo tee /data/web_static/releases/test/index.html
   fi
 }
@@ -49,10 +36,31 @@ give_ownership() {
   sudo chown -R ubuntu:ubuntu /data/
 }
 
+CONFIG="
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /var/www/html;
+
+	index index.html index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	location / {
+		try_files $uri $uri/ =404;
+	}
+
+	location /hbnb_static {
+		alias /data/web_static/current/;
+	}
+}
+"
+
 # update the Nginx configuration to serve the content of /data/web_static/current/ to hbnb_static
 update_nginx_config() {
-  # Use BEGIN and END comments to locate the section for insertion
-  sudo sed -i '/# server/c\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n' /etc/nginx/sites-available/default
+	# Use BEGIN and END comments to locate the section for insertion
+	echo $CONFIG | sudo tee /etc/nginx/sites-available/default
 }
 
 # restart nginx
@@ -70,4 +78,3 @@ update_nginx_config
 restart_nginx
 
 exit 0
-
